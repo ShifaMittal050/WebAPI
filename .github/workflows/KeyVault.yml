@@ -1,0 +1,45 @@
+name: KeyVault with Access Policy
+
+on:
+  workflow_dispatch:
+env:
+ #AZURE_WEBAPP_NAME: TimeOffRequests
+  AZURE_WEBAPP_PACKAGE_PATH: "./publish"
+  
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # checkout the repo
+    - uses: actions/checkout@master
+    - uses: Azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_PUBLISH_PROFILE1 }} # Define secret variable in repository settings as per action documentation
+    - uses: Azure/get-keyvault-secrets@v1
+      with:
+        keyvault: "KV-SATest001"
+        secrets: 'mySecret1, mySecret2, mysecret3'
+      id: myGetSecretAction
+    - name: Some step to consume secrets
+      run: |
+          echo "${{ steps.myGetSecretAction.outputs.mySecret1 }} ${{ steps.myGetSecretAction.outputs.mySecret2 }}"
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+          dotnet-version: '6.0.x'
+          
+    - name: Restore
+      run: dotnet restore ./CurrentTimeService.sln
+        
+    - name: Build
+      run: dotnet build ./CurrentTimeService.sln --configuration Release --no-restore
+        
+    - name: Publish
+      run: dotnet publish ./CurrentTimeService.sln --configuration Release --no-build --output '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}'
+        
+    - name: Deployment
+      uses: azure/webapps-deploy@v2
+      with:
+          app-name: ${{ steps.myGetSecretAction.outputs.mysecret3 }}
+          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE1 }}
+          package: "${{ env.AZURE_WEBAPP_PACKAGE_PATH }}"
