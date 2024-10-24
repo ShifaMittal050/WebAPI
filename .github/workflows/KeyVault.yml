@@ -3,7 +3,7 @@ name: KeyVault with Access Policy
 on:
   workflow_dispatch:
 env:
-  AZURE_WEBAPP_NAME: TimeOffRequests
+ # AZURE_WEBAPP_NAME: TimeOffRequests
   AZURE_WEBAPP_PACKAGE_PATH: "./publish"
   
 jobs:
@@ -18,7 +18,7 @@ jobs:
     - uses: Azure/get-keyvault-secrets@v1
       with:
         keyvault: "KV-SATest001"
-        secrets: 'mySecret1, mySecret2, mysecret3'
+        secrets: 'mySecret1, mySecret2, mysecret4'
       id: myGetSecretAction
     - name: Some step to consume secrets
       run: |
@@ -40,7 +40,7 @@ jobs:
     - name: Deployment
       uses: azure/webapps-deploy@v2
       with:
-          #app-name: ${{ steps.myGetSecretAction.outputs.mysecret3 }}
-          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          app-name: ${{ steps.myGetSecretAction.outputs.mysecret4 }}
+         # app-name: ${{ env.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE2 }}
           package: "${{ env.AZURE_WEBAPP_PACKAGE_PATH }}"
